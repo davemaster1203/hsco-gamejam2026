@@ -4,6 +4,14 @@ extends Node2D
 @onready var earth = $earth
 @onready var moon = $moon
 @onready var camera = $Camera2D
+@onready var hud_panel: PanelContainer = $UI/PanelContainer
+@onready var main_menu: PanelContainer = $UI/MainMenu
+@onready var start_button: Button = $UI/MainMenu/VBoxContainer/StartButton
+@onready var quit_menu_button: Button = $UI/MainMenu/VBoxContainer/QuitButton
+@onready var end_screen: PanelContainer = $UI/EndScreen
+@onready var final_time_label: Label = $UI/EndScreen/VBoxContainer/FinalTimeLabel
+@onready var end_menu_button: Button = $UI/EndScreen/VBoxContainer/MenuButton
+@onready var quit_end_button: Button = $UI/EndScreen/VBoxContainer/QuitButton
 @onready var time_scale_slider: HSlider = $UI/PanelContainer/VBoxContainer/TimeScaleRow/TimeScaleSlider
 @onready var time_scale_value_label: Label = $UI/PanelContainer/VBoxContainer/TimeScaleRow/TimeScaleValueLabel
 @onready var moon_distance_label: Label = $UI/PanelContainer/VBoxContainer/MoonDistanceLabel
@@ -15,8 +23,12 @@ extends Node2D
 @export var min_zoom := 0.2
 @export var max_zoom := 1.0
 @export var simulation_time_scale := 1.0
+@export var goal_distance := 10.0
 var elapsed_play_time := 0.0
+var run_started_msec: int = 0
 var min_milestone = 3000
+var game_started := false
+var game_finished := false
 
 # Die Gravitationskonstante. 
 # Im echten Universum ist sie winzig (6.6743e-11).
@@ -26,15 +38,19 @@ var min_milestone = 3000
 var G: float = 1000.0
 
 func _ready() -> void:
-	$UI/PanelContainer/VBoxContainer/TimeScaleRow/TimeScaleSlider.grab_focus()
 	# orioin in den Orbit der Erde einfügen:
 	orion.speed = create_perfect_orbit(earth.global_position, orion.global_position, earth.mass)
 	moon.speed = create_perfect_orbit(earth.global_position, moon.global_position, earth.mass)
+	start_button.pressed.connect(_on_start_pressed)
+	quit_menu_button.pressed.connect(_on_quit_pressed)
+	end_menu_button.pressed.connect(_on_back_to_menu_pressed)
+	quit_end_button.pressed.connect(_on_quit_pressed)
 	time_scale_slider.value_changed.connect(_on_time_scale_slider_value_changed)
 	_on_time_scale_slider_value_changed(time_scale_slider.value)
 	set_moon_distance(null)
 	set_current_speed(null)
-	runtime_label.text = "Spielzeit: 00:00:00"
+	runtime_label.text = "GameTime: 00:00:00"
+	_show_main_menu()
 	
 
 
@@ -56,8 +72,11 @@ func create_perfect_orbit(first_pos: Vector2, second_pos: Vector2, first_mass: f
 	
 
 func _process(delta: float) -> void:
+	if not game_started or game_finished:
+		return
+
 	# UI stuff:
-	elapsed_play_time += delta
+	elapsed_play_time = float(Time.get_ticks_msec() - run_started_msec) / 1000.0
 	runtime_label.text = "GameTime: %s" % _format_elapsed_time(elapsed_play_time)
 	set_thrust(0.0)
 	
@@ -102,8 +121,11 @@ func _process(delta: float) -> void:
 
 	# Vorbereitet: Diese beiden Methoden koennen spaeter mit den echten Werten versorgt werden.
 	# Beispiel:
-	set_moon_distance(orion.global_position.distance_to(moon.global_position))
+	var moon_distance = orion.global_position.distance_to(moon.global_position)
+	set_moon_distance(moon_distance)
 	set_current_speed(orion.speed.length())
+	if moon_distance <= goal_distance:
+		_show_end_screen()
 
 
 # Berechnet den Positions-Vektor UND die neue Geschwindigkeit für das kleinere Objekt.
@@ -220,4 +242,40 @@ func change_milestones(new: int) -> void:
 		min_milestone = new
 		milestone_label.text = "Milestone: Distance < " + str(min_milestone)
 		return
+
+func _show_main_menu() -> void:
+	hud_panel.visible = false
+	end_screen.visible = false
+	main_menu.visible = true
+	start_button.grab_focus()
+	Engine.time_scale = 1.0
+
+func _on_start_pressed() -> void:
+	main_menu.visible = false
+	end_screen.visible = false
+	hud_panel.visible = true
+	game_started = true
+	game_finished = false
+	run_started_msec = Time.get_ticks_msec()
+	elapsed_play_time = 0.0
+	runtime_label.text = "GameTime: 00:00:00"
+	time_scale_slider.grab_focus()
+
+func _show_end_screen() -> void:
+	if game_finished:
+		return
+	game_finished = true
+	game_started = false
+	hud_panel.visible = false
+	main_menu.visible = false
+	end_screen.visible = true
+	final_time_label.text = "Zeit bis Ziel: %s" % _format_elapsed_time(elapsed_play_time)
+	end_menu_button.grab_focus()
+	Engine.time_scale = 1.0
+
+func _on_back_to_menu_pressed() -> void:
+	get_tree().reload_current_scene()
+
+func _on_quit_pressed() -> void:
+	get_tree().quit()
 	

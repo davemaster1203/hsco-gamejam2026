@@ -3,11 +3,22 @@
 [ext_resource type="PackedScene" uid="uid://f36rtseaxl7n" path="res://scenes/spacecraft/orion.tscn" id="1_hyk8p"]
 [ext_resource type="Script" uid="uid://bxlmfmbgrx3c4" path="res://scenes/main/main.gd" id="1_k2fmo"]
 [ext_resource type="PackedScene" uid="uid://d1gu0echplqhw" path="res://scenes/gravity_objects/gravity_objects.tscn" id="2_iuonh"]
-[ext_resource type="Texture2D" uid="uid://bry1ciper7mo3" path="res://images/earth.png" id="4_6q06x"]
-[ext_resource type="Texture2D" uid="uid://uihd2wavych5" path="res://images/moon.png" id="5_ow5a4"]
+[ext_resource type="Texture2D" uid="uid://dtkp7qbo8se1u" path="res://images/artemis_earth.jpg" id="4_6q06x"]
+[ext_resource type="Texture2D" uid="uid://c7m57scunb60h" path="res://images/artemis_moon.jpg" id="5_6q06x"]
 
 [node name="Main" type="Node2D" unique_id=562265547]
 script = ExtResource("1_k2fmo")
+
+[node name="moon" parent="." unique_id=844551030 instance=ExtResource("2_iuonh")]
+position = Vector2(1995, 2010)
+mass = 61.0
+speed = Vector2(0, 0)
+sprite = ExtResource("5_6q06x")
+
+[node name="earth" parent="." unique_id=914214376 instance=ExtResource("2_iuonh")]
+mass = 5000.0
+speed = Vector2(0, 0)
+sprite = ExtResource("4_6q06x")
 
 [node name="orion" parent="." unique_id=824988689 instance=ExtResource("1_hyk8p")]
 position = Vector2(500, 500)
@@ -15,11 +26,6 @@ mass = 50.0
 speed = Vector2(70, 70)
 thrust = 10.0
 turn_speed = 1.0
-
-[node name="earth" parent="." unique_id=914214376 instance=ExtResource("2_iuonh")]
-mass = 5000.0
-speed = Vector2(0, 0)
-sprite = ExtResource("4_6q06x")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=272537549]
 
@@ -79,8 +85,75 @@ text = "Milestone: Distance < 3000"
 layout_mode = 2
 text = "RealTime: 00:00:00"
 
-[node name="moon" parent="." unique_id=844551030 instance=ExtResource("2_iuonh")]
-position = Vector2(2000, 2000)
-mass = 61.0
-speed = Vector2(0, 0)
-sprite = ExtResource("5_ow5a4")
+[node name="MainMenu" type="PanelContainer" parent="UI" unique_id=442140679]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -210.0
+offset_top = -150.0
+offset_right = 210.0
+offset_bottom = 150.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/MainMenu" unique_id=1279567672]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Logo" type="Label" parent="UI/MainMenu/VBoxContainer" unique_id=1810902906]
+layout_mode = 2
+theme_override_font_sizes/font_size = 46
+text = "MOONSHOT"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="UI/MainMenu/VBoxContainer" unique_id=1253617455]
+layout_mode = 2
+text = "Touch the moon."
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="UI/MainMenu/VBoxContainer" unique_id=1187104247]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
+[node name="StartButton" type="Button" parent="UI/MainMenu/VBoxContainer" unique_id=1247796376]
+layout_mode = 2
+text = "Start"
+
+[node name="QuitButton" type="Button" parent="UI/MainMenu/VBoxContainer" unique_id=1651397715]
+layout_mode = 2
+text = "Beenden"
+
+[node name="EndScreen" type="PanelContainer" parent="UI" unique_id=506297709]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -230.0
+offset_top = -130.0
+offset_right = 230.0
+offset_bottom = 130.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/EndScreen" unique_id=791286567]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="UI/EndScreen/VBoxContainer" unique_id=105270665]
+layout_mode = 2
+theme_override_font_sizes/font_size = 34
+text = "Ziel erreicht"
+horizontal_alignment = 1
+
+[node name="FinalTimeLabel" type="Label" parent="UI/EndScreen/VBoxContainer" unique_id=1935127114]
+layout_mode = 2
+text = "Zeit bis Ziel: 00:00:00"
+horizontal_alignment = 1
+
+[node name="MenuButton" type="Button" parent="UI/EndScreen/VBoxContainer" unique_id=1446406253]
+layout_mode = 2
+text = "Hauptmenue"
+
+[node name="QuitButton" type="Button" parent="UI/EndScreen/VBoxContainer" unique_id=2019207559]
+layout_mode = 2
+text = "Beenden"
