@@ -1,21 +1,10 @@
 [gd_scene format=3 uid="uid://d1gu0echplqhw"]
 
 [ext_resource type="Script" uid="uid://m6mbw44v4qy0" path="res://scenes/gravity_objects/gravity_objects.gd" id="1_skx0t"]
-[ext_resource type="Texture2D" uid="uid://b65r6ke1yrm21" path="res://icon.svg" id="2_v30fo"]
-
-[sub_resource type="SpriteFrames" id="SpriteFrames_0vrao"]
-animations = [{
-"frames": [{
-"duration": 1.0,
-"texture": ExtResource("2_v30fo")
-}],
-"loop": true,
-"name": &"default",
-"speed": 5.0
-}]
 
 [node name="GravityObjects" type="Node2D" unique_id=914214376]
 script = ExtResource("1_skx0t")
+mass = null
+speed = null
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=24367891]
-sprite_frames = SubResource("SpriteFrames_0vrao")
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=574133380]
