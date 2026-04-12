@@ -19,9 +19,12 @@ extends Node2D
 @onready var runtime_label: Label = $UI/PanelContainer/VBoxContainer/RuntimeLabel
 @onready var thrust_label: Label = $UI/PanelContainer/VBoxContainer/Thrust
 @onready var milestone_label: Label = $UI/PanelContainer/VBoxContainer/Milestone
-@export var zoom_speed := 0.5
+@export var zoom_speed := 6.0
+@export var max_zoom_speed := 30.0
+@export var zoom_speed_velocity_factor := 0.03
 @export var min_zoom := 0.2
 @export var max_zoom := 1.0
+@export var camera_view_padding := 0.9
 @export var simulation_time_scale := 1.0
 @export var goal_distance := 10.0
 var elapsed_play_time := 0.0
@@ -41,6 +44,8 @@ func _ready() -> void:
 	# orioin in den Orbit der Erde einfügen:
 	orion.speed = create_perfect_orbit(earth.global_position, orion.global_position, earth.mass)
 	moon.speed = create_perfect_orbit(earth.global_position, moon.global_position, earth.mass)
+	camera.make_current()
+	camera.global_position = earth.global_position
 	start_button.pressed.connect(_on_start_pressed)
 	quit_menu_button.pressed.connect(_on_quit_pressed)
 	end_menu_button.pressed.connect(_on_back_to_menu_pressed)
@@ -82,12 +87,28 @@ func _process(delta: float) -> void:
 	
 	Engine.time_scale = time_scale_slider.value
 	
-	# Kamera zoom out
-	var distance = earth.position.distance_to(moon.position)
-	# Zoom out as distance increases
-	var target_zoom = 1.0 / (distance * 0.005) # Adjust formula to taste
+	# Kamera bleibt auf der Erde fixiert, Zoom passt sich an Orion und Mond an.
+	camera.global_position = earth.global_position
+	var to_orion: Vector2 = orion.global_position - earth.global_position
+	var to_moon: Vector2 = moon.global_position - earth.global_position
+	var viewport_size: Vector2 = get_viewport_rect().size
+	var half_visible_size: Vector2 = viewport_size * 0.5 * camera_view_padding
+	var target_zoom := max_zoom
+
+	if abs(to_orion.x) > 0.001:
+		target_zoom = min(target_zoom, half_visible_size.x / abs(to_orion.x))
+	if abs(to_orion.y) > 0.001:
+		target_zoom = min(target_zoom, half_visible_size.y / abs(to_orion.y))
+	if abs(to_moon.x) > 0.001:
+		target_zoom = min(target_zoom, half_visible_size.x / abs(to_moon.x))
+	if abs(to_moon.y) > 0.001:
+		target_zoom = min(target_zoom, half_visible_size.y / abs(to_moon.y))
+
 	target_zoom = clamp(target_zoom, min_zoom, max_zoom)
-	camera.zoom = camera.zoom.lerp(Vector2(target_zoom, target_zoom), zoom_speed * delta)
+	target_zoom = min(target_zoom, camera.zoom.x)
+	var dynamic_zoom_speed: float = min(max_zoom_speed, zoom_speed + orion.speed.length() * zoom_speed_velocity_factor)
+	var zoom_lerp_weight: float = clamp(dynamic_zoom_speed * delta, 0.0, 1.0)
+	camera.zoom = camera.zoom.lerp(Vector2(target_zoom, target_zoom), zoom_lerp_weight)
 	
 	# --- 1. RCS / DREHUNG ---
 	# Wenn Links/Rechts gedrückt wird, ändert sich nur der WINKEL, nicht die Flugbahn!
