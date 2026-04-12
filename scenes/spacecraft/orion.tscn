@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://f36rtseaxl7n"]
+
+[ext_resource type="Script" uid="uid://cbw25a46mk155" path="res://scenes/spacecraft/orion.gd" id="1_rtvt0"]
+[ext_resource type="Texture2D" uid="uid://cc22o50jcbv6g" path="res://images/orion.png" id="2_rtvt0"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_rtvt0"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_rtvt0")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[node name="Orion" type="Node2D" unique_id=824988689]
+script = ExtResource("1_rtvt0")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1257856131]
+sprite_frames = SubResource("SpriteFrames_rtvt0")
