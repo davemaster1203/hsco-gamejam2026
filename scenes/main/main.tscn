@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://drh310o5sngca"]
+
+[ext_resource type="PackedScene" uid="uid://f36rtseaxl7n" path="res://scenes/spacecraft/orion.tscn" id="1_hyk8p"]
+[ext_resource type="Script" uid="uid://bxlmfmbgrx3c4" path="res://scenes/main/main.gd" id="1_k2fmo"]
+[ext_resource type="PackedScene" uid="uid://d1gu0echplqhw" path="res://scenes/gravity_objects/gravity_objects.tscn" id="2_iuonh"]
+
+[node name="Main" type="Node2D" unique_id=562265547]
+script = ExtResource("1_k2fmo")
+
+[node name="orion" parent="." unique_id=824988689 instance=ExtResource("1_hyk8p")]
+position = Vector2(500, 500)
+mass = 50.0
+speed = Vector2(70, 70)
+thrust = 10.0
+
+[node name="earth" parent="." unique_id=914214376 instance=ExtResource("2_iuonh")]
+mass = 5000.0
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=272537549]
