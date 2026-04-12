@@ -2,9 +2,10 @@ extends Node2D
 
 @onready var orion = $orion
 @onready var earth = $earth
+@onready var moon = $moon
 @onready var camera = $Camera2D
 @export var zoom_speed := 0.5
-@export var min_zoom := 0.5
+@export var min_zoom := 0.2
 @export var max_zoom := 1.0
 
 # Die Gravitationskonstante. 
@@ -15,29 +16,34 @@ extends Node2D
 var G: float = 1000.0
 
 func _ready() -> void:
+	# orioin in den Orbit der Erde einfügen:
+	orion.speed = create_perfect_orbit(earth.global_position, orion.global_position, earth.mass)
+	moon.speed = create_perfect_orbit(earth.global_position, moon.global_position, earth.mass)
+	
+func create_perfect_orbit(first_pos: Vector2, second_pos: Vector2, first_mass: float) -> Vector2:
 	# 1. Distanz zwischen Planet und Satellit berechnen (das 'r' in der Formel)
-	var distance: float = earth.global_position.distance_to(orion.global_position)
+	var distance: float = first_pos.distance_to(second_pos)
 	
 	# 2. Die PERFEKTE Geschwindigkeit für einen Kreisorbit berechnen
-	var perfect_speed: float = sqrt((G * earth.mass) / distance)
+	var perfect_speed: float = sqrt((G * first_mass) / distance)
 	print("Für einen perfekten Orbit brauchst du eine Geschwindigkeit von: ", perfect_speed)
 	
 	# 3. Den Satelliten exakt im 90 Grad Winkel zum Planeten ausrichten (Tangente)
-	var direction_to_planet: Vector2 = (earth.global_position - orion.global_position).normalized()
+	var direction_to_planet: Vector2 = (first_pos - second_pos).normalized()
 	# Einen 90 Grad gedrehten Vektor erstellen (Orthogonal)
 	var orbit_direction: Vector2 = Vector2(-direction_to_planet.y, direction_to_planet.x)
 	
 	# 4. Dem Satelliten die perfekte Geschwindigkeit und Richtung geben
-	orion.speed = orbit_direction * perfect_speed
+	return orbit_direction * perfect_speed
 	
+
 func _process(delta: float) -> void:
 	
-	var distance = earth.position.distance_to(orion.position)
+	var distance = earth.position.distance_to(moon.position)
 	# Zoom out as distance increases
 	var target_zoom = 1.0 / (distance * 0.005) # Adjust formula to taste
 	target_zoom = clamp(target_zoom, min_zoom, max_zoom)
 	camera.zoom = camera.zoom.lerp(Vector2(target_zoom, target_zoom), zoom_speed * delta)
-	
 	
 	
 	# --- 1. RCS / DREHUNG ---
@@ -53,16 +59,21 @@ func _process(delta: float) -> void:
 	var facing_direction: Vector2 = Vector2.RIGHT.rotated(orion.angle)
 	
 	# Visuelles Update für deinen Sprite/Node (Wichtig, damit du siehst, wo er hinschaut!)
-	# $Satellite.rotation = satellite_angle
+	orion.rotation = orion.angle
 	
 	# --- 3. TRIEBWERK (SCHUB IN BLICKRICHTUNG) ---
-	if Input.is_action_pressed("ui_up"):
+	if Input.is_action_pressed("thrust"):
 		orion.speed = apply_directional_thrust(orion.speed, facing_direction, orion.thrust, delta)
-
-
-	var result = calculate_orbital_step(earth.mass, earth.speed, earth.global_position, orion.mass, orion.speed, orion.global_position, delta)
-	orion.position += result["shift_vector"]
-	orion.speed = result["new_velocity"]
+	
+	# orion
+	var orion_orbit = calculate_orbital_step(earth.mass, earth.speed, earth.global_position, orion.mass, orion.speed, orion.global_position, delta)
+	orion.position += orion_orbit["shift_vector"]
+	orion.speed = orion_orbit["new_velocity"]
+	
+	#moon
+	var moon_orbit = calculate_orbital_step(earth.mass, earth.speed, earth.global_position, moon.mass, moon.speed, moon.global_position, delta)
+	moon.position += moon_orbit["shift_vector"]
+	moon.speed = moon_orbit["new_velocity"]
 
 
 # Berechnet den Positions-Vektor UND die neue Geschwindigkeit für das kleinere Objekt.
