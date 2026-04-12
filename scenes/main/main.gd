@@ -4,9 +4,19 @@ extends Node2D
 @onready var earth = $earth
 @onready var moon = $moon
 @onready var camera = $Camera2D
+@onready var time_scale_slider: HSlider = $UI/PanelContainer/VBoxContainer/TimeScaleRow/TimeScaleSlider
+@onready var time_scale_value_label: Label = $UI/PanelContainer/VBoxContainer/TimeScaleRow/TimeScaleValueLabel
+@onready var moon_distance_label: Label = $UI/PanelContainer/VBoxContainer/MoonDistanceLabel
+@onready var speed_label: Label = $UI/PanelContainer/VBoxContainer/SpeedLabel
+@onready var runtime_label: Label = $UI/PanelContainer/VBoxContainer/RuntimeLabel
+@onready var thrust_label: Label = $UI/PanelContainer/VBoxContainer/Thrust
+@onready var milestone_label: Label = $UI/PanelContainer/VBoxContainer/Milestone
 @export var zoom_speed := 0.5
 @export var min_zoom := 0.2
 @export var max_zoom := 1.0
+@export var simulation_time_scale := 1.0
+var elapsed_play_time := 0.0
+var min_milestone = 3000
 
 # Die Gravitationskonstante. 
 # Im echten Universum ist sie winzig (6.6743e-11).
@@ -16,10 +26,18 @@ extends Node2D
 var G: float = 1000.0
 
 func _ready() -> void:
+	$UI/PanelContainer/VBoxContainer/TimeScaleRow/TimeScaleSlider.grab_focus()
 	# orioin in den Orbit der Erde einfügen:
 	orion.speed = create_perfect_orbit(earth.global_position, orion.global_position, earth.mass)
 	moon.speed = create_perfect_orbit(earth.global_position, moon.global_position, earth.mass)
+	time_scale_slider.value_changed.connect(_on_time_scale_slider_value_changed)
+	_on_time_scale_slider_value_changed(time_scale_slider.value)
+	set_moon_distance(null)
+	set_current_speed(null)
+	runtime_label.text = "Spielzeit: 00:00:00"
 	
+
+
 func create_perfect_orbit(first_pos: Vector2, second_pos: Vector2, first_mass: float) -> Vector2:
 	# 1. Distanz zwischen Planet und Satellit berechnen (das 'r' in der Formel)
 	var distance: float = first_pos.distance_to(second_pos)
@@ -38,19 +56,25 @@ func create_perfect_orbit(first_pos: Vector2, second_pos: Vector2, first_mass: f
 	
 
 func _process(delta: float) -> void:
+	# UI stuff:
+	elapsed_play_time += delta
+	runtime_label.text = "GameTime: %s" % _format_elapsed_time(elapsed_play_time)
+	set_thrust(0.0)
 	
+	Engine.time_scale = time_scale_slider.value
+	
+	# Kamera zoom out
 	var distance = earth.position.distance_to(moon.position)
 	# Zoom out as distance increases
 	var target_zoom = 1.0 / (distance * 0.005) # Adjust formula to taste
 	target_zoom = clamp(target_zoom, min_zoom, max_zoom)
 	camera.zoom = camera.zoom.lerp(Vector2(target_zoom, target_zoom), zoom_speed * delta)
 	
-	
 	# --- 1. RCS / DREHUNG ---
 	# Wenn Links/Rechts gedrückt wird, ändert sich nur der WINKEL, nicht die Flugbahn!
-	if Input.is_action_pressed("ui_left"):
+	if Input.is_action_pressed("rotate_left"):
 		orion.angle -= orion.turn_speed * delta
-	if Input.is_action_pressed("ui_right"):
+	if Input.is_action_pressed("rotate_right"):
 		orion.angle += orion.turn_speed * delta
 		
 	# --- 2. BLICKRICHTUNG BERECHNEN ---
@@ -64,6 +88,7 @@ func _process(delta: float) -> void:
 	# --- 3. TRIEBWERK (SCHUB IN BLICKRICHTUNG) ---
 	if Input.is_action_pressed("thrust"):
 		orion.speed = apply_directional_thrust(orion.speed, facing_direction, orion.thrust, delta)
+		set_thrust(orion.thrust)
 	
 	# orion
 	var orion_orbit = calculate_orbital_step(earth.mass, earth.speed, earth.global_position, orion.mass, orion.speed, orion.global_position, delta)
@@ -74,6 +99,11 @@ func _process(delta: float) -> void:
 	var moon_orbit = calculate_orbital_step(earth.mass, earth.speed, earth.global_position, moon.mass, moon.speed, moon.global_position, delta)
 	moon.position += moon_orbit["shift_vector"]
 	moon.speed = moon_orbit["new_velocity"]
+
+	# Vorbereitet: Diese beiden Methoden koennen spaeter mit den echten Werten versorgt werden.
+	# Beispiel:
+	set_moon_distance(orion.global_position.distance_to(moon.global_position))
+	set_current_speed(orion.speed.length())
 
 
 # Berechnet den Positions-Vektor UND die neue Geschwindigkeit für das kleinere Objekt.
@@ -140,3 +170,54 @@ func apply_directional_thrust(current_velocity: Vector2, facing_direction: Vecto
 	
 	# Schub zur aktuellen Geschwindigkeit addieren
 	return current_velocity + thrust_vector
+
+func _on_time_scale_slider_value_changed(value: float) -> void:
+	simulation_time_scale = value
+	time_scale_value_label.text = "%.2fx" % value
+
+func set_moon_distance(distance: Variant) -> void:
+	if distance == null:
+		moon_distance_label.text = "Distance to moon: --"
+		return
+	var res = float(distance)
+	moon_distance_label.text = "Distance to moon: %.2f" % res
+	if res < 10:
+		change_milestones(0)
+		return
+	if res < 100:
+		change_milestones(100)
+		return
+	if res < 500:
+		change_milestones(500)
+		return
+	if res < 1000:
+		change_milestones(1000)
+		return
+	if res < 2000:
+		change_milestones(2000)
+
+func set_current_speed(speed: Variant) -> void:
+	if speed == null:
+		speed_label.text = "Velocity: --"
+		return
+	speed_label.text = "Velocity: %.2f" % float(speed)
+	
+func set_thrust(thrust: Variant) -> void:
+	if thrust == null:
+		thrust_label.text = "Thrust: 0.0 m/s"
+		return
+	thrust_label.text = "Thrust: %.2f m/s" % float(thrust)
+
+func _format_elapsed_time(total_seconds: float) -> String:
+	var full_seconds: int = int(total_seconds)
+	var hours: int = full_seconds / 3600
+	var minutes: int = (full_seconds % 3600) / 60
+	var seconds: int = full_seconds % 60
+	return "%02d:%02d:%02d" % [hours, minutes, seconds]
+
+func change_milestones(new: int) -> void:
+	if new < min_milestone:
+		min_milestone = new
+		milestone_label.text = "Milestone: Distance < " + str(min_milestone)
+		return
+	
