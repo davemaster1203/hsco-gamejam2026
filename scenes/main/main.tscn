@@ -23,51 +23,61 @@ sprite = ExtResource("4_6q06x")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=272537549]
 
-[node name="UI" type="CanvasLayer" parent="."]
-layer = 1
+[node name="UI" type="CanvasLayer" parent="." unique_id=1818741914]
 
-[node name="PanelContainer" type="PanelContainer" parent="UI"]
+[node name="PanelContainer" type="PanelContainer" parent="UI" unique_id=210263757]
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 380.0
 offset_bottom = 176.0
 
-[node name="VBoxContainer" type="VBoxContainer" parent="UI/PanelContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/PanelContainer" unique_id=32713871]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="HeaderLabel" type="Label" parent="UI/PanelContainer/VBoxContainer"]
+[node name="HeaderLabel" type="Label" parent="UI/PanelContainer/VBoxContainer" unique_id=455099434]
 layout_mode = 2
-text = "Simulation HUD"
+text = "Moonshot"
 
-[node name="TimeScaleRow" type="HBoxContainer" parent="UI/PanelContainer/VBoxContainer"]
+[node name="TimeScaleRow" type="HBoxContainer" parent="UI/PanelContainer/VBoxContainer" unique_id=477395567]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="TimeScaleLabel" type="Label" parent="UI/PanelContainer/VBoxContainer/TimeScaleRow"]
+[node name="TimeScaleLabel" type="Label" parent="UI/PanelContainer/VBoxContainer/TimeScaleRow" unique_id=1630743104]
 layout_mode = 2
-text = "Zeitfaktor"
+text = "GameTime"
 
-[node name="TimeScaleSlider" type="HSlider" parent="UI/PanelContainer/VBoxContainer/TimeScaleRow"]
+[node name="TimeScaleSlider" type="HSlider" parent="UI/PanelContainer/VBoxContainer/TimeScaleRow" unique_id=1711671997]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-min_value = 0.25
-max_value = 8.0
-step = 0.25
+min_value = 1.0
+max_value = 16.0
 value = 1.0
 
-[node name="TimeScaleValueLabel" type="Label" parent="UI/PanelContainer/VBoxContainer/TimeScaleRow"]
+[node name="TimeScaleValueLabel" type="Label" parent="UI/PanelContainer/VBoxContainer/TimeScaleRow" unique_id=1494644501]
 layout_mode = 2
 text = "1.00x"
 
-[node name="MoonDistanceLabel" type="Label" parent="UI/PanelContainer/VBoxContainer"]
+[node name="MoonDistanceLabel" type="Label" parent="UI/PanelContainer/VBoxContainer" unique_id=373370855]
 layout_mode = 2
-text = "Abstand zu moon: --"
+text = "Distance to moon: --"
 
-[node name="SpeedLabel" type="Label" parent="UI/PanelContainer/VBoxContainer"]
+[node name="SpeedLabel" type="Label" parent="UI/PanelContainer/VBoxContainer" unique_id=1296261873]
 layout_mode = 2
-text = "Geschwindigkeit: --"
+text = "Velocity: --"
+
+[node name="Thrust" type="Label" parent="UI/PanelContainer/VBoxContainer" unique_id=1030265963]
+layout_mode = 2
+text = "Thrust: 0.0 m/s"
+
+[node name="Milestone" type="Label" parent="UI/PanelContainer/VBoxContainer" unique_id=593628818]
+layout_mode = 2
+text = "Milestone: Distance < 3000"
+
+[node name="RuntimeLabel" type="Label" parent="UI/PanelContainer/VBoxContainer" unique_id=638613914]
+layout_mode = 2
+text = "RealTime: 00:00:00"
 
 [node name="moon" parent="." unique_id=844551030 instance=ExtResource("2_iuonh")]
 position = Vector2(2000, 2000)
